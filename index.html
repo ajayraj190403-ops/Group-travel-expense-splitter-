@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trip Hub | Ultimate Planner & Splitter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Trip Hub</h1>
+            <p>Plan, split, and sync with your group.</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-target="tab-settle">Settle</button>
+            <button class="tab-btn" data-target="tab-timeline">Timeline</button>
+            <button class="tab-btn" data-target="tab-vote">Vote</button>
+            <button class="tab-btn" data-target="tab-sync">Sync & Data</button>
+        </nav>
+
+        <!-- TAB 1: Group & Settlements -->
+        <main id="tab-settle" class="app-card tab-content active">
+            <div class="tab-header"><h2>Travelers</h2></div>
+            <div class="action-row">
+                <input type="text" id="newPersonName" placeholder="Enter name..." class="text-input">
+                <button id="addPersonBtn" class="secondary-btn">+ Add</button>
+            </div>
+            <div id="peopleList" class="list-container"></div>
+
+            <div class="results-section">
+                <h2>Who Owes Whom</h2>
+                <div id="settlementsList" class="settlements-container">
+                    <p class="empty-state">Add people and expenses to see settlements.</p>
+                </div>
+            </div>
+            <button id="copyBtn" class="primary-btn" disabled>Copy Settlement to WhatsApp</button>
+        </main>
+
+        <!-- TAB 2: Timeline & Expenses -->
+        <main id="tab-timeline" class="app-card tab-content">
+            <div class="tab-header"><h2>Smart Add</h2></div>
+            <div class="action-row" style="margin-bottom: 1rem;">
+                <textarea id="pastePlanInput" class="text-input" placeholder="Paste rough WhatsApp plan here (one item per line) to auto-generate timeline..." rows="2"></textarea>
+                <button id="parsePlanBtn" class="secondary-btn">Parse</button>
+            </div>
+
+            <div class="expense-form">
+                <div class="form-group">
+                    <input type="text" id="eventName" placeholder="Event (e.g. Scuba Diving)" class="text-input">
+                </div>
+                <div class="action-row">
+                    <div class="input-wrapper" style="flex: 2;">
+                        <span class="currency-display">₹</span>
+                        <input type="number" id="eventCost" placeholder="0.00" inputmode="decimal" min="0">
+                    </div>
+                    <select id="eventCategory" class="text-input" style="flex: 1;">
+                        <option value="🍔 Food">🍔 Food</option>
+                        <option value="🚗 Transport">🚗 Transport</option>
+                        <option value="🏨 Stay">🏨 Stay</option>
+                        <option value="🎟️ Activity">🎟️ Activity</option>
+                        <option value="📦 Other">📦 Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="paidByGroup" style="display: none;">
+                    <label>Who Paid?</label>
+                    <select id="paidBySelect" class="text-input"></select>
+                </div>
+                <div class="form-group" id="splitAmongGroup" style="display: none;">
+                    <label>Split Among (Unequal Splits):</label>
+                    <div id="splitCheckboxes" class="pill-group"></div>
+                </div>
+                <button id="addEventBtn" class="primary-btn">Save to Timeline</button>
+            </div>
+
+            <div class="tab-header" style="margin-top: 1.5rem;"><h2>Expense Timeline</h2></div>
+            <div class="timeline-container" id="timelineList"></div>
+        </main>
+
+        <!-- TAB 3: Vote & Veto -->
+        <main id="tab-vote" class="app-card tab-content">
+            <div class="tab-header"><h2>Vote & Veto</h2></div>
+            <div class="action-row">
+                <input type="text" id="newIdeaInput" placeholder="Suggest an activity..." class="text-input">
+                <button id="addIdeaBtn" class="secondary-btn">Propose</button>
+            </div>
+            <div class="ideas-container" id="ideasList"></div>
+        </main>
+
+        <!-- TAB 4: Sync & Analytics (Data) -->
+        <main id="tab-sync" class="app-card tab-content">
+            <div class="tab-header"><h2>Expense Analytics</h2></div>
+            <div class="analytics-container">
+                <div id="pieChart" class="pie-chart"></div>
+                <div id="categoryLegend" class="category-legend"></div>
+            </div>
+
+            <hr class="divider">
+            <div class="tab-header"><h2>Settings & Sync</h2></div>
+            
+            <div class="settings-group checkbox-group">
+                <input type="checkbox" id="darkModeToggle">
+                <label for="darkModeToggle">Native Dark Mode</label>
+            </div>
+
+            <div class="settings-group">
+                <label for="currencySelect">Currency</label>
+                <select id="currencySelect" class="text-input">
+                    <option value="₹">₹ INR</option>
+                    <option value="$">$ USD</option>
+                    <option value="€">€ EUR</option>
+                    <option value="£">£ GBP</option>
+                </select>
+            </div>
+
+            <div class="settings-group checkbox-group">
+                <input type="checkbox" id="roundToggle">
+                <label for="roundToggle">Round settlements to nearest whole number</label>
+            </div>
+
+            <hr class="divider">
+            <div class="form-group">
+                <label>Peer-to-Peer Sync (No Backend Required)</label>
+                <button id="exportSyncBtn" class="secondary-btn" style="width:100%; margin-bottom:0.5rem;">Export Trip Data</button>
+                <div class="action-row">
+                    <input type="text" id="importSyncInput" placeholder="Paste sync code here..." class="text-input">
+                    <button id="importSyncBtn" class="secondary-btn" style="background:var(--danger-color)">Import</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="support-section">
+                <p><strong>Developed by Ajayraj</strong></p>
+                <p class="sub-text">Travel Agency Web Solutions | App Support: 8302945799</p>
+                <!-- Keep your UPI QR code logic here -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=ajayraj@upi&pn=Ajayraj" alt="Support QR Code" class="qr-code">
+            </div>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
