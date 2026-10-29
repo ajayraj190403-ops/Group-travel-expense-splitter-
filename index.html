@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Trip Hub | All-in-One Planner &amp; Splitter</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-primary: #1a1a24;
+            --text-secondary: #64748b;
+            --primary-color: #0f172a;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --input-border: #cbd5e1;
+            --border-radius: 16px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary-color: #3b82f6;
+            --input-border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 4.5rem 1rem 1rem 1rem;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Top View Switcher Navigation */
+        .main-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            border-bottom: 1px solid var(--input-border);
+            z-index: 1000;
+        }
+
+        .nav-brand { font-weight: 800; font-size: 1.15rem; color: var(--text-primary); }
+        .nav-links { display: flex; gap: 0.5rem; }
+        .nav-view-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.65rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .nav-view-btn.active {
+            color: var(--accent-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 1.25rem; }
+        .view-section { display: none; flex-direction: column; gap: 1.25rem; }
+        .view-section.active { display: flex; }
+
+        header { text-align: center; }
+        header h1 { font-size: 1.75rem; font-weight: 800; }
+        header p { color: var(--text-secondary); font-size: 0.875rem; }
+
+        .trip-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-color);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Sub-Tabs for Ledger View */
+        .tab-nav { display: flex; background: var(--card-bg); border-radius: 12px; padding: 0.25rem; gap: 0.25rem; border: 1px solid var(--input-border); overflow-x: auto; white-space: nowrap; }
+        .tab-btn { flex: 1; padding: 0.65rem 0.5rem; border: none; background: transparent; border-radius: 10px; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; }
+        .tab-btn.active { background: var(--bg-color); color: var(--text-primary); }
+
+        .app-card {
+            background-color: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; }
+        .hidden { display: none !important; }
+
+        .tab-header h2, .result-header h2 { font-size: 1rem; color: var(--text-primary); border-bottom: 2px solid var(--input-border); padding-bottom: 0.4rem; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+
+        /* Inputs & Buttons */
+        .form-group, .settings-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .form-group label, .settings-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .currency-display { position: absolute; left: 0.85rem; font-size: 1rem; color: var(--text-secondary); pointer-events: none; }
+        .text-input, input[type="number"], select, textarea { width: 100%; padding: 0.8rem; font-size: 0.95rem; border: 1px solid var(--input-border); border-radius: 12px; outline: none; background: var(--bg-color); color: var(--text-primary); }
+        .input-wrapper input { padding-left: 1.85rem; }
+        .range-slider { width: 100%; accent-color: var(--accent-color); height: 6px; }
+        .action-row { display: flex; gap: 0.5rem; }
+
+        .pill-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .pill-group input[type="checkbox"] { display: none; }
+        .pill-group label { padding: 0.35rem 0.75rem; background: var(--bg-color); border: 1px solid var(--input-border); border-radius: 20px; font-size: 0.8rem; cursor: pointer; }
+        .pill-group input[type="checkbox"]:checked + label { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
+        .primary-btn, .secondary-btn, .mini-btn { font-weight: 600; border: none; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+        .primary-btn { width: 100%; padding: 0.95rem; background-color: var(--primary-color); color: white; font-size: 0.95rem; }
+        .primary-btn:disabled { background-color: var(--input-border); cursor: not-allowed; }
+        .secondary-btn { padding: 0 1rem; background-color: var(--accent-color); color: white; white-space: nowrap; }
+        .mini-btn { padding: 0.4rem 0.75rem; font-size: 0.75rem; border-radius: 8px; background: var(--success-color); color: white; white-space: nowrap; }
+
+        /* People List with Personal Spend */
+        .list-container { display: flex; flex-direction: column; gap: 0.5rem; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-color); border-radius: 10px; border: 1px solid var(--input-border); }
+        .person-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem; }
+        .remove-btn { color: var(--danger-color); cursor: pointer; background: none; border: none; font-size: 1rem; padding: 0.25rem; }
+
+        /* Budget Progress Bar */
+        .budget-box { background: var(--bg-color); padding: 0.875rem; border-radius: 12px; border: 1px solid var(--input-border); }
+        .budget-stats { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .progress-track { width: 100%; height: 10px; background: var(--input-border); border-radius: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: var(--success-color); transition: width 0.4s ease, background-color 0.3s ease; }
+
+        /* Settlements & Timeline */
+        .settlement-card { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success-color); padding: 0.75rem; border-radius: 10px; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; }
+        .timeline-container { display: flex; flex-direction: column; gap: 0.85rem; border-left: 2px solid var(--input-border); margin-left: 0.5rem; padding-left: 1.15rem; }
+        .timeline-item { position: relative; background: var(--bg-color); padding: 0.75rem; border-radius: 10px; border: 1px solid var(--input-border); }
+        .timeline-item::before { content: ''; position: absolute; left: -1.55rem; top: 1rem; width: 12px; height: 12px; background: var(--accent-color); border-radius: 50%; }
+        .timeline-item.settlement-item { border-left: 4px solid var(--success-color); background: rgba(16, 185, 129, 0.06); }
+        .timeline-item.settlement-item::before { background: var(--success-color); }
+        .timeline-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+        .day-tag { font-size: 0.7rem; font-weight: 800; color: var(--accent-color); text-transform: uppercase; }
+
+        /* Packing, Vote, Roulette, Pie Chart */
+        .packing-list, .ideas-container { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+        .packing-item, .idea-card { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem; background: var(--bg-color); border-radius: 8px; font-size: 0.875rem; border: 1px solid var(--input-border); }
+        .packing-item.done { opacity: 0.5; }
+        .packing-item.done .item-name { text-decoration: line-through; }
+        .vote-controls { display: flex; align-items: center; gap: 0.4rem; }
+        .vote-btn { background: var(--card-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 0.2rem 0.5rem; font-weight: 700; cursor: pointer; color: var(--text-primary); }
+        .vote-score { font-weight: 700; min-width: 20px; text-align: center; }
+
+        .roulette-container { text-align: center; background: var(--bg-color); padding: 1.25rem; border-radius: 12px; border: 1px dashed var(--input-border); }
+        .roulette-result { font-size: 1.25rem; font-weight: 800; color: var(--accent-color); margin-top: 0.75rem; min-height: 2rem; }
+        .analytics-container { display: flex; align-items: center; gap: 1.25rem; justify-content: center; margin-top: 0.5rem; }
+        .pie-chart { width: 110px; height: 110px; border-radius: 50%; background: conic-gradient(var(--input-border) 0% 100%); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .category-legend { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; font-weight: 600; }
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-color { width: 10px; height: 10px; border-radius: 50%; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .checkbox-group { display: flex; align-items: center; flex-direction: row; gap: 0.5rem; }
+        .checkbox-group input { width: 1.15rem; height: 1.15rem; }
+        .divider { border: 0; border-top: 1px dashed var(--input-border); margin: 1rem 0; }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent-color); animation: spin 1s linear infinite; margin: 0 auto 0.75rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        footer { text-align: center; padding-bottom: 1.5rem; }
+        .sub-text { font-size: 0.75rem; color: var(--text-secondary); }
+        .qr-code { width: 95px; height: 95px; border-radius: 8px; margin-top: 0.5rem; }
+
+        /* PDF PRINT STYLESHEET */
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
+            .no-print, .remove-btn, .mini-btn { display: none !important; }
+            .container { max-width: 100% !important; gap: 1rem !important; }
+            #view-planner { display: none !important; }
+            #view-ledger { display: flex !important; }
+            .print-section { display: flex !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Top Navigation -->
+    <nav class="main-nav no-print">
+        <div class="nav-brand">&#9992;&#65039; Trip Hub</div>
+        <div class="nav-links">
+            <button type="button" class="nav-view-btn active" id="navPlannerBtn">1. Planner</button>
+            <button type="button" class="nav-view-btn" id="navLedgerBtn">2. Settle &amp; Track</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- ==========================================
+             VIEW 1: ITINERARY PLANNER (1-20 DAYS)
+             ========================================== -->
+        <div id="view-planner" class="view-section active">
+            <header>
+                <h1>Dream. Plan. Go.</h1>
+                <p>Generate a 1 to 20 day itinerary and push it straight to your group budget.</p>
+            </header>
+
+            <section class="app-card">
+                <div class="form-group">
+                    <label for="destination">Where are you going?</label>
+                    <input type="text" id="destination" class="text-input" placeholder="e.g., Mumbai, Goa, Udaipur">
+                </div>
+
+                <div class="form-group">
+                    <label for="days">Duration: <strong id="daysCount" style="color:var(--accent-color)">5</strong> Days</label>
+                    <input type="range" id="days" class="range-slider" min="1" max="20" value="5">
+                </div>
+
+                <button type="button" id="generateBtn" class="primary-btn">Generate Itinerary</button>
+            </section>
+
+            <div id="loadingState" class="app-card hidden" style="text-align: center;">
+                <div class="spinner"></div>
+                <p>Crafting your custom itinerary...</p>
+            </div>
+
+            <section id="itineraryResult" class="app-card hidden">
+                <div class="result-header">
+                    <h2 id="resultTitle">Your Trip Plan</h2>
+                    <button type="button" id="lockPlanBtn" class="secondary-btn" style="background:var(--success-color); padding:0.6rem 1rem;">Lock &amp; Budget &#10140;</button>
+                </div>
+                <p class="sub-text" style="margin-top:-0.5rem;">Locking this plan imports all days directly into your Group Expense Timeline.</p>
+                <div class="timeline-container" id="dailyPlanList"></div>
+            </section>
+        </div>
+
+        <!-- ==========================================
+             VIEW 2: SETTLE & TRACK LEDGER (4 TABS)
+             ========================================== -->
+        <div id="view-ledger" class="view-section">
+            <header>
+                <div id="activeTripBanner" class="trip-badge">Active Trip: Custom Group Trip</div>
+                <h1>Trip Hub Ledger</h1>
+                <p class="no-print">Plan, split, and sync with your group.</p>
+            </header>
+
+            <nav class="tab-nav no-print">
+                <button type="button" class="tab-btn active" data-target="tab-settle">Settle</button>
+                <button type="button" class="tab-btn" data-target="tab-timeline">Timeline</button>
+                <button type="button" class="tab-btn" data-target="tab-vote">Vote</button>
+                <button type="button" class="tab-btn" data-target="tab-sync">Sync &amp; PDF</button>
+            </nav>
+
+            <main style="display:flex; flex-direction:column; gap:1.25rem;">
+                <!-- TAB 1: Travelers, Personal Spend & Direct Debts -->
+                <section id="tab-settle" class="app-card tab-content active print-section">
+                    <div class="tab-header"><h2>Travelers &amp; Personal Share</h2></div>
+                    <div class="action-row no-print">
+                        <input type="text" id="newPersonName" placeholder="Enter traveler name..." class="text-input">
+                        <button type="button" id="addPersonBtn" class="secondary-btn">+ Add</button>
+                    </div>
+                    <div id="peopleList" class="list-container"></div>
+
+                    <div class="results-section">
+                        <div class="tab-header" style="margin-bottom:0.75rem;"><h2>Direct Debts (Who Owes Whom)</h2></div>
+                        <div id="settlementsList" class="settlements-container">
+                            <p class="empty-state">Add people and expenses to see precise settlements.</p>
+                        </div>
+                    </div>
+                    <button type="button" id="copyBtn" class="primary-btn no-print" disabled>Copy Settlement to WhatsApp</button>
+
+                    <div class="no-print">
+                        <hr class="divider">
+                        <div class="tab-header"><h2>Who Pays Next?</h2></div>
+                        <div class="roulette-container" style="margin-top:0.75rem;">
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Pick someone randomly for small bills or chai rounds:</p>
+                            <button type="button" id="rouletteBtn" class="secondary-btn" style="width: 100%; padding: 0.875rem;">Spin the Wheel</button>
+                            <div id="rouletteResult" class="roulette-result">Tap spin to choose!</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: Budget Cap, Packing & Timeline -->
+                <section id="tab-timeline" class="app-card tab-content print-section">
+                    <div class="tab-header"><h2>Group Budget Tracker</h2></div>
+                    <div class="budget-box">
+                        <div class="action-row no-print" style="margin-bottom: 0.75rem;">
+                            <input type="number" id="budgetInput" class="text-input" placeholder="Set Total Group Budget (e.g. 50000)" inputmode="decimal">
+                            <button type="button" id="setBudgetBtn" class="secondary-btn">Set Cap</button>
+                        </div>
+                        <div class="budget-stats">
+                            <span id="budgetSpentText">Total Spent: &#8377;0.00</span>
+                            <span id="budgetLimitText">Cap: Not Set</span>
+                        </div>
+                        <div class="progress-track">
+                            <div id="budgetBarFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <hr class="divider no-print">
+
+                    <div class="no-print">
+                        <div class="tab-header"><h2>Group Packing List</h2></div>
+                        <div class="action-row" style="margin-top:0.75rem;">
+                            <input type="text" id="newPackingInput" placeholder="e.g. Passports, Chargers..." class="text-input">
+                            <button type="button" id="addPackingBtn" class="secondary-btn">Add</button>
+                        </div>
+                        <div id="packingList" class="packing-list"></div>
+                        <hr class="divider">
+                    </div>
+
+                    <div class="no-print" id="expenseFormSection">
+                        <div class="tab-header"><h2>Smart Expense Add</h2></div>
+                        <div class="action-row" style="margin: 0.75rem 0 1rem 0;">
+                            <textarea id="pastePlanInput" class="text-input" placeholder="Paste rough WhatsApp plan here (one item per line)..." rows="2"></textarea>
+                            <button type="button" id="parsePlanBtn" class="secondary-btn">Parse</button>
+                        </div>
+
+                        <div class="expense-form">
+                            <div class="form-group">
+                                <input type="text" id="eventName" placeholder="Event / Item (e.g. Scuba Diving)" class="text-input">
+                            </div>
+                            <div class="action-row" style="margin-bottom: 0.5rem;">
+                                <div class="input-wrapper" style="flex: 2;">
+                                    <span class="currency-display">&#8377;</span>
+                                    <input type="number" id="eventCost" placeholder="0.00" inputmode="decimal" min="0" step="0.01">
+                                </div>
+                                <select id="eventCategory" class="text-input" style="flex: 1;">
+                                    <option value="Food">Food</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Stay">Stay</option>
+                                    <option value="Activity">Activity</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="paidByGroup" style="display: none;">
+                                <label for="paidBySelect">Who Paid Upfront?</label>
+                                <select id="paidBySelect" class="text-input"></select>
+                            </div>
+                            <div class="form-group" id="splitAmongGroup" style="display: none;">
+                                <label>Split Among (Tap to exclude/include):</label>
+                                <div id="splitCheckboxes" class="pill-group"></div>
+                            </div>
+                            <button type="button" id="addEventBtn" class="primary-btn" style="margin-top:0.5rem;">Save to Timeline</button>
+                        </div>
+                    </div>
+
+                    <div class="tab-header" style="margin-top: 1rem;"><h2>Expense &amp; Settlement Timeline</h2></div>
+                    <div class="timeline-container" id="timelineList"></div>
+                </section>
+
+                <!-- TAB 3: Vote & Veto -->
+                <section id="tab-vote" class="app-card tab-content no-print">
+                    <div class="tab-header"><h2>Vote &amp; Veto Board</h2></div>
+                    <div class="action-row">
+                        <input type="text" id="newIdeaInput" placeholder="Suggest an activity..." class="text-input">
+                        <button type="button" id="addIdeaBtn" class="secondary-btn">Propose</button>
+                    </div>
+                    <div class="ideas-container" id="ideasList"></div>
+                </section>
+
+                <!-- TAB 4: Sync, PDF Export & Analytics -->
+                <section id="tab-sync" class="app-card tab-content print-section">
+                    <div class="tab-header"><h2>Category Analytics</h2></div>
+                    <div class="analytics-container">
+                        <div id="pieChart" class="pie-chart"></div>
+                        <div id="categoryLegend" class="category-legend"></div>
+                    </div>
+
+                    <div class="no-print" style="margin-top: 1rem;">
+                        <button type="button" id="exportPdfBtn" class="primary-btn" style="background: var(--accent-color);">Download PDF Trip Report</button>
+                    </div>
+
+                    <div class="no-print">
+                        <hr class="divider">
+                        <div class="tab-header"><h2>Settings &amp; Sync</h2></div>
+                        
+                        <div class="settings-group checkbox-group" style="margin-top:0.75rem;">
+                            <input type="checkbox" id="darkModeToggle">
+                            <label for="darkModeToggle">Native Dark Mode</label>
+                        </div>
+
+                        <div class="settings-group">
+                            <label for="currencySelect">Currency</label>
+                            <select id="currencySelect" class="text-input">
+                                <option value="&#8377;">INR (&#8377;)</option>
+                                <option value="$">USD ($)</option>
+                                <option value="&euro;">EUR (&euro;)</option>
+                                <option value="&pound;">GBP (&pound;)</option>
+                            </select>
+                        </div>
+
+                        <div class="settings-group checkbox-group">
+                            <input type="checkbox" id="roundToggle">
+                            <label for="roundToggle">Round settlements to nearest whole number</label>
+                        </div>
+
+                        <hr class="divider">
+                        <div class="form-group">
+                            <label for="importSyncInput">Peer-to-Peer Sync (Share state across phones)</label>
+                            <button type="button" id="exportSyncBtn" class="secondary-btn" style="width:100%; padding:0.875rem; margin-bottom:0.5rem;">Copy Sync Code</button>
+                            <div class="action-row">
+                                <input type="text" id="importSyncInput" placeholder="Paste sync code here..." class="text-input">
+                                <button type="button" id="importSyncBtn" class="secondary-btn" style="background:var(--danger-color)">Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <div class="support-section">
+                <p><strong>Developed by Ajayraj</strong></p>
+                <p class="sub-text">Travel Agency Web Solutions | App Support: 8302945799</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=upi://pay?pa=ajayraj@upi&amp;pn=Ajayraj" alt="Support QR Code" class="qr-code no-print">
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /* jshint esversion: 6 */
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- STATE INITIALIZATION ---
+            var appData = {};
+            try {
+                var saved = localStorage.getItem('tripHubPro');
+                if (saved) appData = JSON.parse(saved);
+            } catch (e) {
+                appData = {};
+            }
+
+            if (!appData.tripTitle) appData.tripTitle = 'Custom Group Trip';
+            if (appData.budget === undefined) appData.budget = 0;
+            if (!Array.isArray(appData.people)) appData.people = [];
+            if (!Array.isArray(appData.events)) appData.events = [];
+            if (!Array.isArray(appData.ideas)) appData.ideas = [];
+            if (!Array.isArray(appData.packingList)) {
+                appData.packingList = [
+                    { id: 'p1', name: 'Passports / IDs', done: false },
+                    { id: 'p2', name: 'Phone Chargers & Power Banks', done: false }
+                ];
+            }
+            if (!appData.settings) {
+                appData.settings = { currency: '₹', round: false, darkMode: false };
+            }
+
+            var editingEventId = null;
+            var generatedDays = [];
+
+            var catColors = {
+                'Food': '#fbbf24',
+                'Transport': '#3b82f6',
+                'Stay': '#8b5cf6',
+                'Activity': '#ec4899',
+                'Other': '#94a3b8',
+                'Settlement': '#10b981'
+            };
+
+            // --- VIEW SWITCHER (1. Planner <-> 2. Settle & Track) ---
+            var navPlannerBtn = document.getElementById('navPlannerBtn');
+            var navLedgerBtn = document.getElementById('navLedgerBtn');
+            var viewPlanner = document.getElementById('view-planner');
+            var viewLedger = document.getElementById('view-ledger');
+
+            function switchMainView(targetView) {
+                if (targetView === 'planner') {
+                    viewPlanner.classList.add('active');
+                    viewLedger.classList.remove('active');
+                    navPlannerBtn.classList.add('active');
+                    navLedgerBtn.classList.remove('active');
+                } else {
+                    viewPlanner.classList.remove('active');
+                    viewLedger.classList.add('active');
+                    navPlannerBtn.classList.remove('active');
+                    navLedgerBtn.classList.add('active');
+                    renderAll();
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            navPlannerBtn.addEventListener('click', function () { switchMainView('planner'); });
+            navLedgerBtn.addEventListener('click', function () { switchMainView('ledger'); });
+
+            // --- PLANNER LOGIC ---
+            var daysSlider = document.getElementById('days');
+            var daysCountDisplay = document.getElementById('daysCount');
+            var generateBtn = document.getElementById('generateBtn');
+            var destinationInput = document.getElementById('destination');
+            var loadingState = document.getElementById('loadingState');
+            var itineraryResult = document.getElementById('itineraryResult');
+            var dailyPlanList = document.getElementById('dailyPlanList');
+            var resultTitle = document.getElementById('resultTitle');
+            var lockPlanBtn = document.getElementById('lockPlanBtn');
+
+            function updateDaysLabel() {
+                daysCountDisplay.textContent = daysSlider.value;
+            }
+            daysSlider.addEventListener('input', updateDaysLabel);
+            daysSlider.addEventListener('change', updateDaysLabel);
+
+            generateBtn.addEventListener('click', function () {
+                var dest = destinationInput.value.trim();
+                var days = parseInt(daysSlider.value, 10) || 5;
+
+                if (!dest) {
+                    alert('Please enter a destination (e.g., Mumbai, Goa, Jaipur)!');
+                    return;
+                }
+
+                itineraryResult.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+
+                setTimeout(function () {
+                    dailyPlanList.innerHTML = '';
+                    generatedDays = [];
+                    resultTitle.textContent = days + ' Days in ' + dest;
+
+                    var morningPlans = [
+                        'Arrival in ' + dest + ', Hotel Check-in & Local Walk',
+                        dest + ' Iconic Landmarks & Heritage Sightseeing',
+                        'Guided Cultural Tour & Famous Local Cafes',
+                        'Scenic Viewpoints & Morning Nature Trail',
+                        'Famous Temples / Monuments & Old City Exploration'
+                    ];
+
+                    var afternoonPlans = [
+                        'Popular Local Market & Street Food Tasting',
+                        'Waterfront / Promenade Stroll & Sunset Views',
+                        'Adventure Activities & Group Photo Spots',
+                        'Shopping for Local Crafts & Souvenirs',
+                        'Relaxed Lounge & Signature ' + dest + ' Dinner'
+                    ];
+
+                    for (var i = 1; i <= days; i++) {
+                        var mAct = morningPlans[(i - 1) % morningPlans.length];
+                        var eAct = afternoonPlans[(i - 1) % afternoonPlans.length];
+                        var summary = 'Day ' + i + ' (' + dest + '): ' + mAct;
+                        generatedDays.push(summary);
+
+                        var div = document.createElement('div');
+                        div.className = 'timeline-item';
+                        div.innerHTML =
+                            '<div class="day-tag">Day ' + i + '</div>' +
+                            '<strong>Morning: ' + mAct + '</strong>' +
+                            '<div class="timeline-meta">Evening: ' + eAct + '</div>';
+                        dailyPlanList.appendChild(div);
+                    }
+
+                    loadingState.classList.add('hidden');
+                    itineraryResult.classList.remove('hidden');
+                    itineraryResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 500);
+            });
+
+            lockPlanBtn.addEventListener('click', function () {
+                var dest = destinationInput.value.trim() || 'Trip';
+                var days = parseInt(daysSlider.value, 10) || 5;
+
+                appData.tripTitle = days + ' Days in ' + dest;
+
+                for (var idx = 0; idx < generatedDays.length; idx++) {
+                    appData.events.push({
+                        id: 'plan_' + Date.now() + '_' + idx,
+                        name: generatedDays[idx],
+                        cost: 0,
+                        category: 'Activity',
+                        paidBy: null,
+                        splitAmong: []
+                    });
+                }
+
+                save();
+                switchMainView('ledger');
+
+                // Open the Timeline tab automatically so user sees imported days
+                var allTabs = document.querySelectorAll('.tab-btn, .tab-content');
+                for (var k = 0; k < allTabs.length; k++) {
+                    allTabs[k].classList.remove('active');
+                }
+                document.querySelector('[data-target="tab-timeline"]').classList.add('active');
+                document.getElementById('tab-timeline').classList.add('active');
+            });
+
+            // --- LEDGER & SPLITTER LOGIC ---
+            var ui = {
+                currencyDisplays: document.querySelectorAll('.currency-display'),
+                currencySelect: document.getElementById('currencySelect'),
+                roundToggle: document.getElementById('roundToggle'),
+                darkModeToggle: document.getElementById('darkModeToggle'),
+                copyBtn: document.getElementById('copyBtn'),
+                pieChart: document.getElementById('pieChart'),
+                categoryLegend: document.getElementById('categoryLegend'),
+                activeTripBanner: document.getElementById('activeTripBanner'),
+                addEventBtn: document.getElementById('addEventBtn')
+            };
+
+            function formatMoney(amount) {
+                var num = Number(amount) || 0;
+                var val = appData.settings.round ? Math.round(num) : num;
+                var decimals = appData.settings.round ? 0 : 2;
+                return appData.settings.currency + val.toFixed(decimals);
+            }
+
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            }
+
+            function getPersonName(id) {
+                for (var i = 0; i < appData.people.length; i++) {
+                    if (appData.people[i].id === id) return appData.people[i].name;
+                }
+                return 'Unknown';
+            }
+
+            function save() {
+                localStorage.setItem('tripHubPro', JSON.stringify(appData));
+                renderAll();
+            }
+
+            // Sub-Tab Switching inside Ledger
+            var tabBtns = document.querySelectorAll('.tab-btn');
+            for (var t = 0; t < tabBtns.length; t++) {
+                tabBtns[t].addEventListener('click', function () {
+                    var allTabs = document.querySelectorAll('.tab-btn, .tab-content');
+                    for (var k = 0; k < allTabs.length; k++) {
+                        allTabs[k].classList.remove('active');
+                    }
+                    this.classList.add('active');
+                    var targetId = this.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            }
+
+            function getPersonalStats() {
+                var stats = {};
+                appData.people.forEach(function (p) { stats[p.id] = { paid: 0, share: 0 }; });
+
+                appData.events.forEach(function (ev) {
+                    var isSettle = ev.category === 'Settlement';
+                    if (ev.cost > 0 && !isSettle) {
+                        if (ev.paidBy && stats[ev.paidBy]) stats[ev.paidBy].paid += ev.cost;
+                        if (ev.splitAmong && ev.splitAmong.length > 0) {
+                            var splitVal = ev.cost / ev.splitAmong.length;
+                            ev.splitAmong.forEach(function (memberId) {
+                                if (stats[memberId]) stats[memberId].share += splitVal;
+                            });
+                        }
+                    }
+                });
+                return stats;
+            }
+
+            function getSettlements() {
+                var debts = {};
+                appData.people.forEach(function (p1) {
+                    debts[p1.id] = {};
+                    appData.people.forEach(function (p2) { debts[p1.id][p2.id] = 0; });
+                });
+
+                appData.events.forEach(function (ev) {
+                    if (ev.cost > 0 && ev.paidBy && ev.splitAmong && ev.splitAmong.length > 0) {
+                        var splitAmount = ev.cost / ev.splitAmong.length;
+                        ev.splitAmong.forEach(function (borrowerId) {
+                            if (borrowerId !== ev.paidBy && debts[borrowerId] && debts[borrowerId][ev.paidBy] !== undefined) {
+                                debts[borrowerId][ev.paidBy] += splitAmount;
+                            }
+                        });
+                    }
+                });
+
+                var transactions = [];
+                var processedPairs = {};
+
+                appData.people.forEach(function (p1) {
+                    appData.people.forEach(function (p2) {
+                        if (p1.id === p2.id) return;
+                        var pairKey = [p1.id, p2.id].sort().join('-');
+                        if (processedPairs[pairKey]) return;
+                        processedPairs[pairKey] = true;
+
+                        var p1OwesP2 = debts[p1.id][p2.id];
+                        var p2OwesP1 = debts[p2.id][p1.id];
+
+                        if (p1OwesP2 > p2OwesP1) {
+                            var diff1 = p1OwesP2 - p2OwesP1;
+                            if (diff1 > 0.01) transactions.push({ fromId: p1.id, fromName: p1.name, toId: p2.id, toName: p2.name, amount: diff1 });
+                        } else if (p2OwesP1 > p1OwesP2) {
+                            var diff2 = p2OwesP1 - p1OwesP2;
+                            if (diff2 > 0.01) transactions.push({ fromId: p2.id, fromName: p2.name, toId: p1.id, toName: p1.name, amount: diff2 });
+                        }
+                    });
+                });
+
+                return transactions;
+            }
+
+            function renderSettings() {
+                ui.currencySelect.value = appData.settings.currency;
+                ui.roundToggle.checked = appData.settings.round;
+                for (var i = 0; i < ui.currencyDisplays.length; i++) {
+                    ui.currencyDisplays[i].textContent = appData.settings.currency;
+                }
+                ui.darkModeToggle.checked = appData.settings.darkMode;
+                if (appData.settings.darkMode) document.body.classList.add('dark-mode');
+                else document.body.classList.remove('dark-mode');
+            }
+
+            function renderPeople() {
+                var list = document.getElementById('peopleList');
+                var stats = getPersonalStats();
+                list.innerHTML = '';
+
+                appData.people.forEach(function (p) {
+                    var pStat = stats[p.id] || { paid: 0, share: 0 };
+                    list.innerHTML +=
+                        '<div class="list-item">' +
+                            '<div>' +
+                                '<strong>' + p.name + '</strong>' +
+                                '<div class="person-meta">Paid Upfront: <strong>' + formatMoney(pStat.paid) + '</strong> | True Share: <strong>' + formatMoney(pStat.share) + '</strong></div>' +
+                            '</div>' +
+                            '<button type="button" class="remove-btn" onclick="removePerson(\'' + p.id + '\')">&#10005;</button>' +
+                        '</div>';
+                });
+            }
+
+            function renderBudget() {
+                var totalSpent = 0;
+                appData.events.forEach(function (ev) {
+                    if (ev.category !== 'Settlement') totalSpent += (Number(ev.cost) || 0);
+                });
+
+                var spentText = document.getElementById('budgetSpentText');
+                var limitText = document.getElementById('budgetLimitText');
+                var barFill = document.getElementById('budgetBarFill');
+
+                spentText.textContent = 'Total Spent: ' + formatMoney(totalSpent);
+
+                if (appData.budget > 0) {
+                    var pct = Math.min((totalSpent / appData.budget) * 100, 100);
+                    var rawPct = Math.round((totalSpent / appData.budget) * 100);
+                    limitText.textContent = 'Cap: ' + formatMoney(appData.budget) + ' (' + rawPct + '%)';
+                    barFill.style.width = pct + '%';
+
+                    if (rawPct >= 100) barFill.style.backgroundColor = 'var(--danger-color)';
+                    else if (rawPct >= 75) barFill.style.backgroundColor = 'var(--warning-color)';
+                    else barFill.style.backgroundColor = 'var(--success-color)';
+                } else {
+                    limitText.textContent = 'Cap: Not Set';
+                    barFill.style.width = '0%';
+                }
+            }
+
+            function renderPackingList() {
+                var container = document.getElementById('packingList');
+                container.innerHTML = '';
+                appData.packingList.forEach(function (item) {
+                    container.innerHTML +=
+                        '<div class="packing-item ' + (item.done ? 'done' : '') + '">' +
+                            '<div style="display:flex; align-items:center;">' +
+                                '<input type="checkbox" style="width: 1.15rem; height: 1.15rem; margin-right: 0.65rem;" ' + (item.done ? 'checked' : '') + ' onchange="togglePacking(\'' + item.id + '\', this.checked)">' +
+                                '<span class="item-name">' + item.name + '</span>' +
+                            '</div>' +
+                            '<button type="button" class="remove-btn" onclick="removePacking(\'' + item.id + '\')">&#10005;</button>' +
+                        '</div>';
+                });
+            }
+
+            function renderEventForm() {
+                var paidBySelect = document.getElementById('paidBySelect');
+                var splitCheckboxes = document.getElementById('splitCheckboxes');
+                if (appData.people.length > 0) {
+                    document.getElementById('paidByGroup').style.display = 'flex';
+                    document.getElementById('splitAmongGroup').style.display = 'flex';
+                    paidBySelect.innerHTML = appData.people.map(function (p) {
+                        return '<option value="' + p.id + '">' + p.name + '</option>';
+                    }).join('');
+                    splitCheckboxes.innerHTML = appData.people.map(function (p) {
+                        return '<div><input type="checkbox" id="chk_' + p.id + '" value="' + p.id + '" checked><label for="chk_' + p.id + '">' + p.name + '</label></div>';
+                    }).join('');
+                } else {
+                    document.getElementById('paidByGroup').style.display = 'none';
+                    document.getElementById('splitAmongGroup').style.display = 'none';
+                }
+            }
+
+            function renderTimeline() {
+                var container = document.getElementById('timelineList');
+                container.innerHTML = '';
+
+                if (appData.events.length === 0) {
+                    container.innerHTML = '<p class="empty-state">No timeline events or expenses yet.</p>';
+                    return;
+                }
+
+                appData.events.forEach(function (ev) {
+                    var isSettlement = ev.category === 'Settlement';
+                    var metaText = '<span>Planned slot (0 logged)</span> <button type="button" class="mini-btn no-print" onclick="loadPlannedEvent(\'' + ev.id + '\')">+ Log Cost</button>';
+
+                    if (isSettlement) {
+                        var payerName = getPersonName(ev.paidBy);
+                        var receiverName = getPersonName(ev.splitAmong && ev.splitAmong[0]);
+                        metaText = '<span>Direct Settlement: <strong>' + payerName + '</strong> paid <strong>' + receiverName + '</strong></span>';
+                    } else if (ev.cost > 0) {
+                        var splitNames = (ev.splitAmong || []).map(function (id) { return getPersonName(id); }).join(', ');
+                        metaText = '<span>Paid by: <strong>' + getPersonName(ev.paidBy) + '</strong> | Split with: ' + splitNames + '</span>';
+                    }
+
+                    container.innerHTML +=
+                        '<div class="timeline-item ' + (isSettlement ? 'settlement-item' : '') + '">' +
+                            '<button type="button" class="remove-btn" style="position:absolute; top:0.4rem; right:0.4rem;" onclick="removeEvent(\'' + ev.id + '\')">&#10005;</button>' +
+                            '<strong>' + ev.name + '</strong> - <span style="color:var(--success-color); font-weight:700;">' + formatMoney(ev.cost) + '</span> <span style="font-size:0.75rem">[' + ev.category + ']</span>' +
+                            '<div class="timeline-meta">' + metaText + '</div>' +
+                        '</div>';
+                });
+            }
+
+            function renderSettlements() {
+                var container = document.getElementById('settlementsList');
+                var transactions = getSettlements();
+
+                if (appData.people.length === 0) {
+                    container.innerHTML = '<p class="empty-state">Add travelers above to begin.</p>';
+                    ui.copyBtn.disabled = true;
+                    return;
+                }
+
+                if (transactions.length === 0) {
+                    container.innerHTML = '<p class="empty-state">Everyone is 100% settled up!</p>';
+                    ui.copyBtn.disabled = true;
+                } else {
+                    container.innerHTML = transactions.map(function (t) {
+                        return '<div class="settlement-card">' +
+                            '<div>' +
+                                '<strong>' + t.fromName + '</strong> owes <strong>' + t.toName + '</strong>' +
+                                '<div style="font-size:1rem; color:var(--success-color); font-weight:800;">' + formatMoney(t.amount) + '</div>' +
+                            '</div>' +
+                            '<button type="button" class="mini-btn" onclick="markAsPaid(\'' + t.fromId + '\', \'' + t.toId + '\', ' + t.amount + ')">' +
+                                'Settle: ' + t.fromName + ' &#10140; ' + t.toName +
+                            '</button>' +
+                        '</div>';
+                    }).join('');
+                    ui.copyBtn.disabled = false;
+                }
+            }
+
+            function renderIdeas() {
+                var container = document.getElementById('ideasList');
+                container.innerHTML = '';
+                var sorted = appData.ideas.slice().sort(function (a, b) { return b.score - a.score; });
+                sorted.forEach(function (idea) {
+                    container.innerHTML +=
+                        '<div class="idea-card">' +
+                            '<span>' + idea.name + '</span>' +
+                            '<div class="vote-controls">' +
+                                '<button type="button" class="vote-btn" onclick="voteIdea(\'' + idea.id + '\', 1)">+</button>' +
+                                '<span class="vote-score">' + idea.score + '</span>' +
+                                '<button type="button" class="vote-btn" onclick="voteIdea(\'' + idea.id + '\', -1)">-</button>' +
+                                '<button type="button" class="remove-btn" onclick="removeIdea(\'' + idea.id + '\')">&#10005;</button>' +
+                            '</div>' +
+                        '</div>';
+                });
+            }
+
+            function renderAnalytics() {
+                var catTotals = {};
+                var grandTotal = 0;
+                appData.events.forEach(function (ev) {
+                    if (ev.cost > 0 && ev.category !== 'Settlement') {
+                        catTotals[ev.category] = (catTotals[ev.category] || 0) + ev.cost;
+                        grandTotal += ev.cost;
+                    }
+                });
+
+                ui.categoryLegend.innerHTML = '';
+                if (grandTotal === 0) {
+                    ui.pieChart.style.background = 'conic-gradient(var(--input-border) 0% 100%)';
+                    ui.categoryLegend.innerHTML = '<p style="color:var(--text-secondary)">No expenses logged yet.</p>';
+                    return;
+                }
+
+                var gradientString = [];
+                var currentDeg = 0;
+                for (var cat in catTotals) {
+                    if (Object.prototype.hasOwnProperty.call(catTotals, cat)) {
+                        var total = catTotals[cat];
+                        var pct = (total / grandTotal) * 100;
+                        var color = catColors[cat] || '#94a3b8';
+                        gradientString.push(color + ' ' + currentDeg + '% ' + (currentDeg + pct) + '%');
+                        currentDeg += pct;
+                        ui.categoryLegend.innerHTML +=
+                            '<div class="legend-item"><div class="legend-color" style="background:' + color + '"></div>' + cat + ': ' + formatMoney(total) + ' (' + Math.round(pct) + '%)</div>';
+                    }
+                }
+                ui.pieChart.style.background = 'conic-gradient(' + gradientString.join(', ') + ')';
+            }
+
+            function renderAll() {
+                ui.activeTripBanner.textContent = 'Active Trip: ' + appData.tripTitle;
+                renderSettings();
+                renderPeople();
+                renderEventForm();
+                renderBudget();
+                renderTimeline();
+                renderSettlements();
+                renderIdeas();
+                renderAnalytics();
+                renderPackingList();
+            }
+
+            // --- ACTION LISTENERS ---
+            document.getElementById('setBudgetBtn').addEventListener('click', function () {
+                var val = parseFloat(document.getElementById('budgetInput').value);
+                if (!isNaN(val) && val >= 0) {
+                    appData.budget = val;
+                    document.getElementById('budgetInput').value = '';
+                    save();
+                }
+            });
+
+            document.getElementById('exportPdfBtn').addEventListener('click', function () {
+                window.print();
+            });
+
+            document.getElementById('rouletteBtn').addEventListener('click', function () {
+                if (appData.people.length === 0) return alert('Add travelers first!');
+                var resultDiv = document.getElementById('rouletteResult');
+                var rouletteBtn = document.getElementById('rouletteBtn');
+                var counter = 0;
+                rouletteBtn.disabled = true;
+                var interval = setInterval(function () {
+                    var randomPerson = appData.people[Math.floor(Math.random() * appData.people.length)];
+                    resultDiv.textContent = randomPerson.name;
+                    counter++;
+                    if (counter > 18) {
+                        clearInterval(interval);
+                        resultDiv.innerHTML = '<strong>' + resultDiv.textContent + '</strong> pays next!';
+                        rouletteBtn.disabled = false;
+                    }
+                }, 65);
+            });
+
+            document.getElementById('addPackingBtn').addEventListener('click', function () {
+                var input = document.getElementById('newPackingInput');
+                if (input.value.trim()) {
+                    appData.packingList.push({ id: generateId(), name: input.value.trim(), done: false });
+                    input.value = '';
+                    save();
+                }
+            });
+
+            document.getElementById('addPersonBtn').addEventListener('click', function () {
+                var input = document.getElementById('newPersonName');
+                if (input.value.trim()) {
+                    appData.people.push({ id: generateId(), name: input.value.trim() });
+                    input.value = '';
+                    save();
+                }
+            });
+
+            document.getElementById('parsePlanBtn').addEventListener('click', function () {
+                var text = document.getElementById('pastePlanInput').value;
+                text.split('\n').forEach(function (line) {
+                    if (line.trim() !== '') {
+                        appData.events.push({ id: generateId(), name: line.trim(), cost: 0, category: 'Other', paidBy: null, splitAmong: [] });
+                    }
+                });
+                document.getElementById('pastePlanInput').value = '';
+                save();
+            });
+
+            ui.addEventBtn.addEventListener('click', function () {
+                var name = document.getElementById('eventName').value.trim();
+                var cost = parseFloat(document.getElementById('eventCost').value) || 0;
+                var category = document.getElementById('eventCategory').value;
+
+                if (!name) return alert('Please enter an event or expense name.');
+                if (cost > 0 && appData.people.length === 0) {
+                    return alert('Please add travelers in the Settle tab before logging a paid expense!');
+                }
+
+                var paidBy = appData.people.length > 0 ? document.getElementById('paidBySelect').value : null;
+                var checkedBoxes = document.querySelectorAll('#splitCheckboxes input:checked');
+                var splitAmong = [];
+                for (var i = 0; i < checkedBoxes.length; i++) {
+                    splitAmong.push(checkedBoxes[i].value);
+                }
+
+                if (cost > 0 && splitAmong.length === 0) {
+                    return alert('Select at least one person to split this cost with.');
+                }
+
+                if (editingEventId) {
+                    for (var j = 0; j < appData.events.length; j++) {
+                        if (appData.events[j].id === editingEventId) {
+                            appData.events[j].name = name;
+                            appData.events[j].cost = cost;
+                            appData.events[j].category = category;
+                            appData.events[j].paidBy = paidBy;
+                            appData.events[j].splitAmong = splitAmong;
+                            break;
+                        }
+                    }
+                    editingEventId = null;
+                    ui.addEventBtn.textContent = 'Save to Timeline';
+                } else {
+                    appData.events.push({ id: generateId(), name: name, cost: cost, category: category, paidBy: paidBy, splitAmong: splitAmong });
+                }
+
+                document.getElementById('eventName').value = '';
+                document.getElementById('eventCost').value = '';
+                save();
+            });
+
+            document.getElementById('addIdeaBtn').addEventListener('click', function () {
+                var input = document.getElementById('newIdeaInput');
+                if (input.value.trim()) {
+                    appData.ideas.push({ id: generateId(), name: input.value.trim(), score: 0 });
+                    input.value = '';
+                    save();
+                }
+            });
+
+            ui.currencySelect.addEventListener('change', function (e) { appData.settings.currency = e.target.value; save(); });
+            ui.roundToggle.addEventListener('change', function (e) { appData.settings.round = e.target.checked; save(); });
+            ui.darkModeToggle.addEventListener('change', function (e) { appData.settings.darkMode = e.target.checked; save(); });
+
+            document.getElementById('exportSyncBtn').addEventListener('click', function () {
+                var syncString = btoa(encodeURIComponent(JSON.stringify(appData)));
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(syncString).then(function () {
+                        var btn = document.getElementById('exportSyncBtn');
+                        btn.textContent = 'Copied Sync Code!';
+                        setTimeout(function () { btn.textContent = 'Copy Sync Code'; }, 2500);
+                    }).catch(function () {
+                        prompt('Copy your sync code:', syncString);
+                    });
+                } else {
+                    prompt('Copy your sync code:', syncString);
+                }
+            });
+
+            document.getElementById('importSyncBtn').addEventListener('click', function () {
+                var input = document.getElementById('importSyncInput').value.trim();
+                try {
+                    var importedData = JSON.parse(decodeURIComponent(atob(input)));
+                    if (importedData.people && importedData.events) {
+                        appData = importedData;
+                        save();
+                        document.getElementById('importSyncInput').value = '';
+                        alert('Trip synced successfully!');
+                    } else {
+                        alert('Invalid Sync Code!');
+                    }
+                } catch (e) {
+                    alert('Invalid Sync Code!');
+                }
+            });
+
+            ui.copyBtn.addEventListener('click', function () {
+                var text = '*' + appData.tripTitle + ' - Settlement*\n\n';
+                getSettlements().forEach(function (t) {
+                    text += '* ' + t.fromName + ' owes ' + t.toName + ': ' + formatMoney(t.amount) + '\n';
+                });
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function () {
+                        ui.copyBtn.textContent = 'Copied!';
+                        setTimeout(function () { ui.copyBtn.textContent = 'Copy Settlement to WhatsApp'; }, 2500);
+                    });
+                }
+            });
+
+            // --- GLOBAL WINDOW HANDLERS ---
+            window.removePerson = function (id) {
+                appData.people = appData.people.filter(function (p) { return p.id !== id; });
+                appData.events = appData.events.filter(function (e) { return e.paidBy !== id && (e.splitAmong || []).indexOf(id) === -1; });
+                save();
+            };
+            window.removeEvent = function (id) {
+                appData.events = appData.events.filter(function (e) { return e.id !== id; });
+                save();
+            };
+            window.removeIdea = function (id) {
+                appData.ideas = appData.ideas.filter(function (i) { return i.id !== id; });
+                save();
+            };
+            window.voteIdea = function (id, val) {
+                for (var i = 0; i < appData.ideas.length; i++) {
+                    if (appData.ideas[i].id === id) {
+                        appData.ideas[i].score += val;
+                        break;
+                    }
+                }
+                save();
+            };
+            window.togglePacking = function (id, isDone) {
+                for (var i = 0; i < appData.packingList.length; i++) {
+                    if (appData.packingList[i].id === id) {
+                        appData.packingList[i].done = isDone;
+                        break;
+                    }
+                }
+                save();
+            };
+            window.removePacking = function (id) {
+                appData.packingList = appData.packingList.filter(function (i) { return i.id !== id; });
+                save();
+            };
+            window.loadPlannedEvent = function (id) {
+                for (var i = 0; i < appData.events.length; i++) {
+                    if (appData.events[i].id === id) {
+                        editingEventId = id;
+                        document.getElementById('eventName').value = appData.events[i].name;
+                        document.getElementById('eventCategory').value = 'Activity';
+                        ui.addEventBtn.textContent = 'Update Planned Item Cost';
+                        document.getElementById('expenseFormSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        document.getElementById('eventCost').focus();
+                        break;
+                    }
+                }
+            };
+            window.markAsPaid = function (fromId, toId, amount) {
+                var payerName = getPersonName(fromId);
+                var receiverName = getPersonName(toId);
+                if (confirm('Confirm that ' + payerName + ' has paid ' + formatMoney(amount) + ' directly to ' + receiverName + '?')) {
+                    appData.events.push({
+                        id: generateId(),
+                        name: payerName + ' settled up with ' + receiverName,
+                        cost: amount,
+                        category: 'Settlement',
+                        paidBy: fromId,
+                        splitAmong: [toId]
+                    });
+                    save();
+                }
+            };
+
+            renderAll();
+        });
+    </script>
+</body>
+</html>
