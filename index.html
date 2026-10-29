@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>Trip Hub | AI Travel Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body class="with-fixed-nav">
+    <!-- Unified Multi-Page Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">✈️ Trip Hub</div>
+        <div class="nav-links">
+            <a href="index.html" class="active">1. Planner</a>
+            <a href="settle.html">2. Settle & Track</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>Dream. Plan. Go.</h1>
+            <p>Generate a day-by-day itinerary and push it straight to your group budget.</p>
+        </header>
+
+        <main class="app-card active">
+            <div class="form-group">
+                <label for="destination">Where are you going?</label>
+                <input type="text" id="destination" class="text-input" placeholder="e.g., Mumbai, Goa, Udaipur">
+            </div>
+
+            <div class="form-group">
+                <label for="days">Duration: <strong id="daysCount" style="color:var(--accent-color)">5</strong> Days</label>
+                <input type="range" id="days" class="range-slider" min="1" max="20" value="5">
+            </div>
+
+            <button id="generateBtn" class="primary-btn">Generate Itinerary</button>
+        </main>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="app-card hidden" style="text-align: center;">
+            <div class="spinner"></div>
+            <p>Crafting your custom itinerary...</p>
+        </div>
+
+        <!-- Generated Itinerary Container -->
+        <section id="itineraryResult" class="app-card hidden">
+            <div class="result-header">
+                <h2 id="resultTitle">Your Trip Plan</h2>
+                <button id="lockPlanBtn" class="secondary-btn" style="background:var(--success-color); padding:0.6rem 1rem;">Lock & Budget ➔</button>
+            </div>
+            <p class="sub-text" style="margin-top:-0.75rem;">Locking this plan imports all days directly into your Group Expense Timeline.</p>
+            <div class="timeline-container" id="dailyPlanList"></div>
+        </section>
+
+        <footer>
+            <div class="support-section">
+                <p><strong>Developed by Ajayraj</strong></p>
+                <p class="sub-text">Travel Agency Web Solutions | App Support: 8302945799</p>
+            </div>
+        </footer>
+    </div>
+    <script src="planner.js"></script>
+</body>
+</html>
